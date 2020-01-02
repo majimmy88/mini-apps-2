@@ -3,7 +3,7 @@ import Axios from 'axios';
 import SearchBar from './SearchBar.jsx'
 import EventList from './EventList.jsx'
 import ReactPaginate from 'react-paginate';
-import $ from 'jquery';
+// import $ from 'jquery';
 
 
 class App extends React.Component {
@@ -17,29 +17,23 @@ class App extends React.Component {
         }
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handlePageClick = this.handlePageClick.bind(this);
     }
     componentDidMount(){
-        this.loadCommentsFromServer();
+        this.getData()
     }
-    loadCommentsFromServer() {
-        $.ajax({
-          url: this.props.url,
-          data: { limit: this.props.perPage, offset: this.state.offset },
-          dataType: 'json',
-          type: 'GET',
+    getData(){
+        Axios.get('http://localhost:3000/events')
+        .then((res)=>{
+            console.log(res)
+            // console.log(res.data.slice(0,10))
+            this.setState({array:res.data.slice(0,30)})
 
-          success: data => {
-            this.setState({
-              data: data.comments,
-              pageCount: Math.ceil(data.meta.total_count / data.meta.limit),
-            });
-          },
-
-          error: (xhr, status, err) => {
-            console.error(this.props.url, status, err.toString()); // eslint-disable-line
-          },
-        });
-      }
+        })
+        .catch((err)=>{
+            console.error(err)
+        })
+    }
     handleChange(event) {
         console.log(event.target.value)
         this.setState({value: event.target.value});
@@ -50,7 +44,7 @@ class App extends React.Component {
         Axios.get(`http://localhost:3000/events?q=${this.state.value}`)
         .then((res)=>{
             console.log(res)
-            this.setState({array:res.data.slice(0,30)})
+            this.setState({array:res.data.slice(0,10)})
         })
         .catch((err)=>{
             console.error(err)
@@ -58,12 +52,16 @@ class App extends React.Component {
     }
     handlePageClick(data) {
         let selected = data.selected;
-        let offset = Math.ceil(selected * this.props.perPage);
-
-        this.setState({ offset: offset }, () => {
-          this.getData();
-        });
+        Axios.get(`http://localhost:3000/events?_page=${selected}&_limit=10`)
+        .then((res)=>{
+            console.log(res)
+            this.setState({array:res.data.slice()})
+        })
+        .catch((err)=>{
+            console.error(err)
+        })
       };
+
     render() {
         return (
             <div>
